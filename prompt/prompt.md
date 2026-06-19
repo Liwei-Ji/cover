@@ -90,7 +90,7 @@ The entire image is set against a soft, textured background of pale lavender wit
 
 A close-up, abstract digital render features , light blue, metallic surface with subtle reflections. Above the logo, sharp, angled planes of dark blue and teal create a sense of depth, with bright, out-of-focus highlights in pink, green, and yellow shimmering at the top edge. The surface curves gently, catching light to create soft gradients. The lighting is bright and diffused, originating from multiple sources, giving the scene a sleek, futuristic, and slightly ethereal atmosphere. The perspective is frontal and slightly angled, emphasizing the reflective quality of the material. The composition is balanced, with the logo serving as the clear focal point against a backdrop of abstract geometric shapes and light refractions.
 
-![](https://melodious-dinghy-1b3.notion.site/image/attachment%3Aade7e4d3-b20d-409e-977c-cba74f9d8b58%3Aoai_TrustBank_English_1x1.webp?table=block&id=381e9367-0f24-8045-a181-e1e05731e74f&spaceId=7ea9bfb0-f2fe-42a9-a012-8311c890aa1a&width=530&userId=&cache=v2&imgBuildSrc=requestProxiedImageUrl)
+![](./image/oai_TrustBank_English_1x1.webp)
 
 > The background is a macro view of a soft, pink textured surface, possibly a flower petal or fabric, with subtle vertical striations. Scattered across the surface are small, glistening droplets of water, reflecting light. The lighting is soft and diffused, creating a gentle glow that emphasizes the delicate texture and water droplets. The overall atmosphere is serene, elegant, and clean, suggesting concepts of purity and growth. The composition is tight and focused, with a shallow depth of field blurring the background slightly to keep the logo and text sharp and prominent.
 

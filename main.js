@@ -24,6 +24,7 @@ const presetDefaults = {
   prism: { colorMix: 16, softness: 88, texture: 34, materialDepth: 46, bands: 18, brush: 12, vignette: 18 },
   watercolor: { colorMix: 78, softness: 42, texture: 68, materialDepth: 14, bands: 4, brush: 88, vignette: 14 },
   material: { colorMix: 18, softness: 54, texture: 34, materialDepth: 82, bands: 14, brush: 42, vignette: 38 },
+  warp_lavender: { colorMix: 25, softness: 75, texture: 15, materialDepth: 90, bands: 0, brush: 50, vignette: 10 },
 };
 
 const presets = [
@@ -163,24 +164,135 @@ function drawBackground(ctx, settings) {
 
   ctx.clearRect(0, 0, width, height);
 
-  const base = ctx.createLinearGradient(0, 0, width, height);
-  base.addColorStop(0, rgba(p[3], 1));
-  base.addColorStop(0.48, rgba(p[1], 1));
-  base.addColorStop(1, rgba(p[4], 1));
-  ctx.fillStyle = base;
-  ctx.fillRect(0, 0, width, height);
+  if (settings.preset === 'warp_lavender') {
+    ctx.save();
 
-  const blobCount = settings.preset === 'watercolor' ? 18 : 12;
-  for (let i = 0; i < blobCount; i += 1) {
-    const x = (0.08 + random() * 0.84) * width;
-    const y = (0.04 + random() * 0.92) * height;
-    const size = radius * lerp(0.45, 1.08, random());
-    const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
-    gradient.addColorStop(0, rgba(p[i % p.length], lerp(0.42, 0.78, softness)));
-    gradient.addColorStop(0.58, rgba(p[(i + 2) % p.length], lerp(0.12, 0.26, softness)));
-    gradient.addColorStop(1, rgba(p[(i + 3) % p.length], 0));
-    ctx.fillStyle = gradient;
+    // --- 色彩 (colorMix): shift hue family cool-blue-lavender ↔ neutral-lavender ↔ warm-rose-lavender ---
+    const cmT = settings.colorMix / 100;
+    const topColor   = cmT < 0.5 ? rgba(mixHex('#e8eaf6', '#f2eefa', cmT * 2), 1)   : rgba(mixHex('#f2eefa', '#f5e8f5', (cmT - 0.5) * 2), 1);
+    const midColor   = cmT < 0.5 ? rgba(mixHex('#dbd8f0', '#e4daf0', cmT * 2), 1)   : rgba(mixHex('#e4daf0', '#edd5ed', (cmT - 0.5) * 2), 1);
+    const botColor   = cmT < 0.5 ? rgba(mixHex('#c8c0e8', '#d0c3e3', cmT * 2), 1)   : rgba(mixHex('#d0c3e3', '#dfc0e0', (cmT - 0.5) * 2), 1);
+    // stroke dark tint also shifts with hue
+    const darkR = Math.round(lerp(110, 145, cmT));
+    const darkG = Math.round(lerp(100, 100, cmT));
+    const darkB = Math.round(lerp(160, 130, cmT));
+
+    // 1. Base Lavender Gradient (色彩 connected)
+    const baseGrad = ctx.createLinearGradient(0, 0, width, height);
+    baseGrad.addColorStop(0,   topColor);
+    baseGrad.addColorStop(0.5, midColor);
+    baseGrad.addColorStop(1,   botColor);
+    ctx.fillStyle = baseGrad;
     ctx.fillRect(0, 0, width, height);
+
+    // 2. Diffused Glow (柔和度 connected: radius & intensity)
+    const softnessT   = settings.softness / 100;
+    const glowRadius  = Math.max(width, height) * lerp(0.4, 0.85, softnessT);
+    const glowPeak    = lerp(0.62, 0.32, softnessT);  // high softness → gentler centre
+    const glowGrad = ctx.createRadialGradient(
+      width * 0.5, height * 0.45, 0,
+      width * 0.5, height * 0.45, glowRadius
+    );
+    glowGrad.addColorStop(0,   `rgba(255,255,255,${glowPeak})`);
+    glowGrad.addColorStop(0.5, `rgba(255,255,255,${glowPeak * 0.3})`);
+    glowGrad.addColorStop(1,   'rgba(255,255,255,0)');
+    ctx.fillStyle = glowGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // 3. Diagonal Brushed Metal / Painted Canvas Texture
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate(-Math.PI / 6); // -30 degrees diagonal
+    const diag = Math.sqrt(width * width + height * height) * 1.2;
+
+    // Fine brushed lines
+    const lineCount = Math.round(1000 + (settings.brush * 5));
+    for (let i = 0; i < lineCount; i++) {
+      const y      = (random() - 0.5) * diag;
+      const isDark = random() > 0.55;
+      ctx.lineWidth = random() * 1.2 + 0.3;
+      const opacity = random() * 0.08 * (settings.materialDepth / 100);
+      ctx.strokeStyle = isDark
+        ? `rgba(${darkR},${darkG},${darkB},${opacity * 0.35})`
+        : `rgba(255,255,255,${opacity * 0.95})`;
+      ctx.beginPath();
+      ctx.moveTo(-diag / 2, y);
+      ctx.lineTo( diag / 2, y);
+      ctx.stroke();
+    }
+
+    // Wider organic canvas brush strokes
+    for (let i = 0; i < 24; i++) {
+      const y      = (random() - 0.5) * diag;
+      const isDark = random() > 0.5;
+      ctx.lineWidth = random() * 15 + 4;
+      const opacity = random() * 0.015 * (settings.brush / 100);
+      ctx.strokeStyle = isDark
+        ? `rgba(${darkR - 25},${darkG - 10},${darkB - 20},${opacity})`
+        : `rgba(255,255,255,${opacity * 1.5})`;
+      ctx.beginPath();
+      ctx.moveTo(-diag / 2, y);
+      ctx.lineTo( diag / 2, y);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+
+    // 4. 色帶 (bands): subtle horizontal metallic light bands
+    if (settings.bands > 5) {
+      const bandCount    = Math.round(lerp(2, 8, settings.bands / 100));
+      const bandAlpha    = settings.bands / 1800;
+      for (let i = 0; i < bandCount; i++) {
+        const bandCenterY = ((i + 0.5) / bandCount) * height;
+        const bandH       = height * lerp(0.06, 0.18, random());
+        const bGrad = ctx.createLinearGradient(0, bandCenterY - bandH, 0, bandCenterY + bandH);
+        bGrad.addColorStop(0,   'rgba(255,255,255,0)');
+        bGrad.addColorStop(0.5, `rgba(255,255,255,${bandAlpha})`);
+        bGrad.addColorStop(1,   'rgba(255,255,255,0)');
+        ctx.fillStyle = bGrad;
+        ctx.fillRect(0, 0, width, height);
+      }
+    }
+
+    // Final polish: soft top-left shine
+    const warpShine = ctx.createLinearGradient(0, 0, width * 0.7, height * 0.55);
+    warpShine.addColorStop(0,   'rgba(255,255,255,0.38)');
+    warpShine.addColorStop(0.5, 'rgba(255,255,255,0.08)');
+    warpShine.addColorStop(1,   'rgba(255,255,255,0)');
+    ctx.fillStyle = warpShine;
+    ctx.fillRect(0, 0, width, height);
+
+    // 邊緣暗角 (vignette): connected to slider
+    const warpVignette = ctx.createRadialGradient(
+      width / 2, height / 2, Math.min(width, height) * 0.3,
+      width / 2, height / 2, Math.max(width, height) * 0.78
+    );
+    warpVignette.addColorStop(0, 'rgba(0,0,0,0)');
+    warpVignette.addColorStop(1, `rgba(${darkR - 10},${darkG - 8},${darkB},${settings.vignette / 185})`);
+    ctx.fillStyle = warpVignette;
+    ctx.fillRect(0, 0, width, height);
+
+    drawNoise(ctx, width, height, Math.round(settings.texture * 0.6), settings.seed);
+    return;
+  } else {
+    const base = ctx.createLinearGradient(0, 0, width, height);
+    base.addColorStop(0, rgba(p[3], 1));
+    base.addColorStop(0.48, rgba(p[1], 1));
+    base.addColorStop(1, rgba(p[4], 1));
+    ctx.fillStyle = base;
+    ctx.fillRect(0, 0, width, height);
+
+    const blobCount = settings.preset === 'watercolor' ? 18 : 12;
+    for (let i = 0; i < blobCount; i += 1) {
+      const x = (0.08 + random() * 0.84) * width;
+      const y = (0.04 + random() * 0.92) * height;
+      const size = radius * lerp(0.45, 1.08, random());
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+      gradient.addColorStop(0, rgba(p[i % p.length], lerp(0.42, 0.78, softness)));
+      gradient.addColorStop(0.58, rgba(p[(i + 2) % p.length], lerp(0.12, 0.26, softness)));
+      gradient.addColorStop(1, rgba(p[(i + 3) % p.length], 0));
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+    }
   }
 
   if (settings.preset === 'article' || settings.preset === 'warmflow' || settings.preset === 'horizon' || settings.bands > 18) {
@@ -296,6 +408,7 @@ function drawBackground(ctx, settings) {
     ctx.restore();
   }
 
+  // Generic shine / vignette / noise (skipped for warp_lavender which returns early)
   const shine = ctx.createLinearGradient(0, 0, width, height * 0.7);
   shine.addColorStop(0, 'rgba(255,255,255,0.54)');
   shine.addColorStop(0.36, 'rgba(255,255,255,0.15)');
@@ -490,7 +603,20 @@ function App() {
             ),
           ),
         ),
-        h('button', { className: 'soft-button full-width', type: 'button', onClick: randomize }, '隨機'),
+        h(
+          'div',
+          { className: 'preset-grid', style: { marginTop: '8px' } },
+          h('button', { type: 'button', onClick: randomize }, '隨機'),
+          h(
+            'button',
+            {
+              className: settings.preset === 'warp_lavender' ? 'is-active' : '',
+              type: 'button',
+              onClick: () => choosePreset('warp_lavender'),
+            },
+            '拉絲紫',
+          ),
+        ),
       ),
       h(
         'details',

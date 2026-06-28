@@ -9,7 +9,7 @@
 | 預覽圖名稱 | 主要色系與特徵 | 建議對應 Presets |
 | :--- | :--- | :--- |
 | **[Hero_Art_Card_SEO_1x1](#1-hero-art-card-seo-1x1)** | 暖粉與橘色、柔焦花卉 | 封面 (`article`) |
-| **[Art_Card_1080x1080_1](#2-art_card_1080x1080_1)** | 藍色系、斜向線條與光斑 | 柔光 (`diffusion`) |
+| **[Art_Card_1080x1080_1](#2-art_card_1080x1080_1)** | 藍色系、斜向線條與光斑 | 藍色印象 (`artcard_blue`) |
 | **[ArtCard-Trusted-Contact](#3-artcard-trusted-contact)** | 淡粉與薰衣草紫、溫暖核心 | 柔光 (`diffusion`) / 質感 (`material`) |
 | **[confidential-submission-draft](#4-confidential-submission-draft)** | 亮綠與翠綠、植物嫩芽 | 暖綠 (`warmflow`) |
 | **[Saftey-Art-Card](#5-saftey-art-card)** | 珊瑚橘、桃紅與鴨綠色、流動形狀 | 彩虹 (`prism`) |
@@ -19,7 +19,7 @@
 | **[oai_Netmoi](#9-oai_netmoi)** | 鼠尾草綠與橄欖綠、葉脈斜線 | 暖綠 (`warmflow`) |
 | **[oai_Tolan](#10-oai_tolan)** | 珊瑚橘、拼圖紋理 | 質感 (`material`) |
 | **[oai_JetBrains](#11-oai_jetbrains)** | 翠綠、紫羅蘭與極光漸層、波浪緞帶 | 極光 (`aurora`) / 彩虹 (`prism`) |
-| **[EF_Ep16_1.2](#12-ef_ep16_12)** | 粉紅、橘到微紅漸層 | 日落 (`horizon`) |
+| **[EF_Ep16_1.2](#12-ef_ep16_12)** | 粉紅、橘到微紅漸層 | 粉橘夕陽 (`ef_sunset`) |
 | **[oai_Warp](#13-oai_warp)** | 淡薰衣草紫、金屬刷紋 | 質感 (`material`) |
 | **[oai_Parloa](#14-oai_parloa)** | 金屬藍、深藍、多色眩光 | 質感 (`material`) / 彩虹 (`prism`) |
 | **[oai_TrustBank_English](#15-oai_trustbank_english)** | 粉色花瓣、露珠水滴 | 水彩 (`watercolor`) / 質感 (`material`) |
@@ -43,7 +43,7 @@
 ### 2. Art Card Blue (藍色印象)
 *   **檔案路徑**：`./image/Art_Card_1080x1080_1.png`
 *   **色系標籤**：`Sapphire`, `Cerulean`, `Sky Blue`, `Diagonal Strokes`
-*   **對應預設**：柔光 (`diffusion`)
+*   **對應預設**：藍色印象 (`artcard_blue`)
 
 ![](./image/Art_Card_1080x1080_1.png)
 
@@ -155,7 +155,7 @@
 ### 12. EF Ep16 (粉橘夕陽)
 *   **檔案路徑**：`./image/EF_Ep16_1.2.webp`
 *   **色系標籤**：`Pink`, `Orange`, `Red Gradient`, `Atmospheric Glow`
-*   **對應預設**：日落 (`horizon`)
+*   **對應預設**：粉橘夕陽 (`ef_sunset`)
 
 ![](./image/EF_Ep16_1.2.webp)
 

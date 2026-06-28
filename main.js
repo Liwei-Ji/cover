@@ -25,6 +25,8 @@ const presetDefaults = {
   watercolor: { colorMix: 78, softness: 42, texture: 68, materialDepth: 14, bands: 4, brush: 88, vignette: 14 },
   material: { colorMix: 18, softness: 54, texture: 34, materialDepth: 82, bands: 14, brush: 42, vignette: 38 },
   warp_lavender: { colorMix: 25, softness: 75, texture: 15, materialDepth: 90, bands: 0, brush: 50, vignette: 10 },
+  artcard_blue: { colorMix: 40, softness: 88, texture: 20, materialDepth: 0, bands: 55, brush: 45, vignette: 14 },
+  ef_sunset: { colorMix: 50, softness: 85, texture: 45, materialDepth: 0, bands: 60, brush: 40, vignette: 8 },
 };
 
 const presets = [
@@ -163,6 +165,182 @@ function drawBackground(ctx, settings) {
   const radius = Math.max(width, height) * lerp(0.42, 0.82, softness);
 
   ctx.clearRect(0, 0, width, height);
+
+  if (settings.preset === 'artcard_blue') {
+    ctx.save();
+    const cmT = settings.colorMix / 100;
+    const softT = settings.softness / 100;
+
+    // hue family drifts slightly with 色彩
+    const deepC = mixHex('#0a5cd6', '#1f78ea', cmT);   // sapphire core
+    const midC = mixHex('#2f9be9', '#4aabf2', cmT);    // cerulean
+    const lightC = mixHex('#9ad2f7', '#b6e0fa', cmT);  // pale sky blue
+
+    // 1. Base diagonal gradient (lower-left → upper-right)
+    const baseGrad = ctx.createLinearGradient(0, height, width, 0);
+    baseGrad.addColorStop(0.0, rgba(lightC, 1));
+    baseGrad.addColorStop(0.32, rgba(midC, 1));
+    baseGrad.addColorStop(0.58, rgba(deepC, 1));
+    baseGrad.addColorStop(0.82, rgba(midC, 1));
+    baseGrad.addColorStop(1.0, rgba(lightC, 1));
+    ctx.fillStyle = baseGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // 2. Soft diagonal colour bands + white luminous streaks
+    ctx.save();
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate(-Math.PI / 5); // ~-36° diagonal flow
+    const diag = Math.sqrt(width * width + height * height) * 1.3;
+    const bandSpread = diag * lerp(0.14, 0.3, softT); // 柔和度 widens & blurs bands
+
+    const bandCount = Math.round(lerp(3, 7, settings.bands / 100));
+    for (let i = 0; i < bandCount; i += 1) {
+      const cy = (random() - 0.5) * diag * 0.9;
+      const tone = random();
+      const col = tone > 0.62 ? deepC : tone > 0.3 ? midC : lightC;
+      const alpha = lerp(0.22, 0.5, random());
+      const g = ctx.createLinearGradient(0, cy - bandSpread, 0, cy + bandSpread);
+      g.addColorStop(0, rgba(col, 0));
+      g.addColorStop(0.5, rgba(col, alpha));
+      g.addColorStop(1, rgba(col, 0));
+      ctx.fillStyle = g;
+      ctx.fillRect(-diag / 2, -diag / 2, diag, diag);
+    }
+
+    ctx.globalCompositeOperation = 'screen';
+    const streakCount = Math.round(lerp(2, 6, settings.brush / 100));
+    for (let i = 0; i < streakCount; i += 1) {
+      const cy = (random() - 0.5) * diag;
+      const sw = diag * lerp(0.03, 0.11, random());
+      const a = lerp(0.12, 0.32, random());
+      const g = ctx.createLinearGradient(0, cy - sw, 0, cy + sw);
+      g.addColorStop(0, 'rgba(255,255,255,0)');
+      g.addColorStop(0.5, `rgba(255,255,255,${a})`);
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(-diag / 2, -diag / 2, diag, diag);
+    }
+    ctx.restore();
+
+    // 3. Pale green-yellow wash in the lower-left corner
+    const cornerR = Math.max(width, height) * 0.5;
+    const corner = ctx.createRadialGradient(0, height, 0, 0, height, cornerR);
+    corner.addColorStop(0, 'rgba(196, 226, 150, 0.42)');
+    corner.addColorStop(0.5, 'rgba(196, 226, 150, 0.12)');
+    corner.addColorStop(1, 'rgba(196, 226, 150, 0)');
+    ctx.fillStyle = corner;
+    ctx.fillRect(0, 0, width, height);
+
+    // 4. Soft diffused shine (top-left), 柔和度 connected
+    const shinePeak = lerp(0.28, 0.5, softT);
+    const shine = ctx.createLinearGradient(0, 0, width * 0.75, height * 0.6);
+    shine.addColorStop(0, `rgba(255,255,255,${shinePeak})`);
+    shine.addColorStop(0.45, `rgba(255,255,255,${shinePeak * 0.25})`);
+    shine.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = shine;
+    ctx.fillRect(0, 0, width, height);
+
+    // 5. 邊緣暗角 (vignette): blue-toned
+    const vignette = ctx.createRadialGradient(
+      width / 2, height / 2, Math.min(width, height) * 0.28,
+      width / 2, height / 2, Math.max(width, height) * 0.78,
+    );
+    vignette.addColorStop(0, 'rgba(8, 40, 90, 0)');
+    vignette.addColorStop(1, `rgba(8, 40, 90, ${settings.vignette / 150})`);
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, width, height);
+
+    drawNoise(ctx, width, height, Math.round(settings.texture * 0.6), settings.seed);
+    ctx.restore();
+    return;
+  }
+
+  if (settings.preset === 'ef_sunset') {
+    ctx.save();
+    const cmT = settings.colorMix / 100;
+    const softT = settings.softness / 100;
+
+    // hue drift with 色彩: cooler-pink ↔ hotter-red/orange
+    const topC = mixHex('#ec3a55', '#f72f47', cmT);    // coral → hot red (deeper for contrast)
+    const upperC = mixHex('#ff7a4f', '#ff8838', cmT);  // orange
+    const midC = mixHex('#ffb488', '#ffc07a', cmT);    // bright peach (light peak)
+    const lowerC = mixHex('#ff6b9f', '#ff5688', cmT);  // pink
+    const botC = mixHex('#ef2ba6', '#f5208f', cmT);    // deep magenta
+
+    // 1. Vertical sunset gradient (top → bottom)
+    const baseGrad = ctx.createLinearGradient(0, 0, 0, height);
+    baseGrad.addColorStop(0.0, rgba(topC, 1));
+    baseGrad.addColorStop(0.26, rgba(upperC, 1));
+    baseGrad.addColorStop(0.52, rgba(midC, 1));
+    baseGrad.addColorStop(0.76, rgba(lowerC, 1));
+    baseGrad.addColorStop(1.0, rgba(botC, 1));
+    ctx.fillStyle = baseGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // 2. Hot atmospheric bloom near the top-centre (柔和度 controls spread)
+    const topGlow = ctx.createRadialGradient(
+      width * 0.5, -height * 0.06, 0,
+      width * 0.5, -height * 0.06, Math.max(width, height) * lerp(0.42, 0.7, softT),
+    );
+    topGlow.addColorStop(0, 'rgba(255, 46, 78, 0.62)');
+    topGlow.addColorStop(0.6, 'rgba(255, 60, 92, 0.18)');
+    topGlow.addColorStop(1, 'rgba(255, 60, 92, 0)');
+    ctx.fillStyle = topGlow;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    const span = Math.max(width, height) * 2;
+
+    // 3. Central luminous peak rising from the bottom — 山峰 (色帶 controls strength & height)
+    const peakStrength = lerp(0.2, 0.62, settings.bands / 100);
+    const peakHeight = lerp(2.6, 4.8, settings.bands / 100) * lerp(0.85, 1.15, softT);
+    ctx.save();
+    ctx.translate(width * 0.5, height * 1.04);
+    ctx.scale(1, peakHeight);
+    const peak = ctx.createRadialGradient(0, 0, 0, 0, 0, width * 0.34);
+    peak.addColorStop(0, `rgba(255, 234, 208, ${peakStrength})`);
+    peak.addColorStop(0.45, `rgba(255, 214, 184, ${peakStrength * 0.42})`);
+    peak.addColorStop(1, 'rgba(255, 214, 184, 0)');
+    ctx.fillStyle = peak;
+    ctx.fillRect(-span, -span, span * 2, span * 2);
+    ctx.restore();
+
+    // 4. Secondary scattered light columns (流動感 connected)
+    const bloomCount = Math.round(lerp(1, 5, settings.brush / 100));
+    for (let i = 0; i < bloomCount; i += 1) {
+      const x = (0.14 + random() * 0.72) * width;
+      const y = height * (0.94 + random() * 0.14);
+      const rx = width * lerp(0.08, 0.2, random());
+      const stretch = lerp(2.2, 3.6, random()) * lerp(0.85, 1.15, softT);
+      const a = lerp(0.1, 0.24, random());
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(1, stretch);
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+      g.addColorStop(0, `rgba(255, 226, 198, ${a})`);
+      g.addColorStop(0.5, `rgba(255, 212, 182, ${a * 0.3})`);
+      g.addColorStop(1, 'rgba(255, 212, 182, 0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(-span, -span, span * 2, span * 2);
+      ctx.restore();
+    }
+    ctx.restore();
+
+    // 4. 邊緣暗角 (vignette): warm-toned
+    const vignette = ctx.createRadialGradient(
+      width / 2, height / 2, Math.min(width, height) * 0.3,
+      width / 2, height / 2, Math.max(width, height) * 0.8,
+    );
+    vignette.addColorStop(0, 'rgba(120, 20, 60, 0)');
+    vignette.addColorStop(1, `rgba(120, 20, 60, ${settings.vignette / 200})`);
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, width, height);
+
+    drawNoise(ctx, width, height, Math.round(settings.texture * 0.9), settings.seed);
+    ctx.restore();
+    return;
+  }
 
   if (settings.preset === 'warp_lavender') {
     ctx.save();
@@ -606,7 +784,6 @@ function App() {
         h(
           'div',
           { className: 'preset-grid', style: { marginTop: '8px' } },
-          h('button', { type: 'button', onClick: randomize }, '隨機'),
           h(
             'button',
             {
@@ -616,6 +793,25 @@ function App() {
             },
             '紫霧',
           ),
+          h(
+            'button',
+            {
+              className: settings.preset === 'artcard_blue' ? 'is-active' : '',
+              type: 'button',
+              onClick: () => choosePreset('artcard_blue'),
+            },
+            '藍色印象',
+          ),
+          h(
+            'button',
+            {
+              className: settings.preset === 'ef_sunset' ? 'is-active' : '',
+              type: 'button',
+              onClick: () => choosePreset('ef_sunset'),
+            },
+            '粉橘',
+          ),
+          h('button', { type: 'button', onClick: randomize }, '隨機'),
         ),
       ),
       h(
